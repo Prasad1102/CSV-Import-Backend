@@ -8,21 +8,21 @@ class ImportJob < ApplicationJob
     import.processing!
 
     batch_size = 100
-
     failed_count = 0
     process_count = 0
     total_count = 0
     records = []
-    errors = []
+    import_errors = []
+
     begin
       import.file.open do |temp_file|
         CSV.foreach(temp_file.path, headers: true) do |row|
           total_count += 1
 
-          valid, error = validate_record(row)
+          valid, errors = validate_record(row)
           if valid
             records << {
-              email: row['email'].strip,
+              email: row['email'].strip.downcase,
               first_name: row['first_name'].strip,
               last_name: row['last_name'].strip,
               mobile: row['mobile'].strip,
@@ -31,7 +31,7 @@ class ImportJob < ApplicationJob
             }
           else
             failed_count += 1
-            errors << { total_count => error }
+            import_errors << { total_count + 1 => errors } # adding +1 for header
           end
 
           if records.size >= batch_size
@@ -48,32 +48,36 @@ class ImportJob < ApplicationJob
         Import::statuses[:completed_with_errors]
       end
 
-      import.update(
-        status: ,
-        failed_count: failed_count,
-        total_count: total_count,
-        process_count: process_count,
-        import_errors: errors,
-      )
+      import.update(status:, failed_count:, total_count:, process_count:, import_errors:)
     rescue => e
-      debugger
       import.failed!
+      raise e
     end
   end
 
   private
 
   def validate_record(row)
-    valid_mobile = row['mobile'].strip.present? && row['mobile'].match(/\A\d{10}\z/)
-    valid_email = row['email'].strip.present? && row['email'].strip.length >= 5 && row['email'].strip.match?(/\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i)
-    if !valid_mobile && !valid_email
-      return false, [{email: "Email Is Not Valid"}, {mobile: "Mobile Number is Not Valid"}]
-    elsif !valid_mobile
-      return false, {mobile: "Mobile Number is Not Valid"}
-    elsif !valid_email
-      return false, {email: "Email Is Not Valid"}
-    else
-      return true, "Success"
+    errors = {}
+
+    unless row['mobile'].strip.present? && row['mobile'].match(/\A\d{10}\z/)
+      errors["mobile"] = 'Mobile Number is Not Valid'
     end
+
+    if row['email'].blank?
+      errors["email"] = "Email can't be blank"
+    elsif row['email'].strip.length < 5
+      errors["email"] = "Email length should be greater than or equal to 5"
+    elsif !row['email'].strip.match?(/\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i)
+      errors["email"] = "Email is not valid"
+    end
+
+    if row['first_name'].blank?
+      errors["first_name"] = "First Name can't be blank"
+    elsif row['first_name'].strip.length < 3
+      errors["first_name"] = "First name should be atleast 3 character long"
+    end
+
+    [errors.blank?, errors]
   end
 end

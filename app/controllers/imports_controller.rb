@@ -3,7 +3,6 @@ class ImportsController < ApplicationController
         @import =Import.new(file: params[:file])
         if @import.save
             ImportJob.perform_later(@import.id)
-
             render json: {
             id: @import.id,
             }, status: :created

@@ -1,6 +1,8 @@
 require 'csv'
 
 class ImportJob < ApplicationJob
+  # include Sidekiq::Job
+  
   queue_as :default
 
   def perform(id)

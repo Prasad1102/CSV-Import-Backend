@@ -3,14 +3,13 @@ default: &default
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 
-
 development:
   <<: *default
   database: backend2_development
 
 test:
   <<: *default
-  database: backend_test
+  database: backend2_test
 
 production:
   primary: &primary_production

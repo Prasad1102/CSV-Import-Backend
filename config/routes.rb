@@ -6,4 +6,5 @@ Rails.application.routes.draw do
 
   resources :imports, only: [:create, :index, :show]
   resources :employees
+  resources :componies
 end

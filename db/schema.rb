@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_09_084403) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_13_153447) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -42,6 +42,17 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_09_084403) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "componies", force: :cascade do |t|
+    t.string "name"
+    t.date "established_date"
+    t.string "ceo"
+    t.string "head_office"
+    t.string "website"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "employees_count", default: 0
+  end
+
   create_table "employees", force: :cascade do |t|
     t.string "email", null: false
     t.string "first_name"
@@ -51,6 +62,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_09_084403) do
     t.date "joining_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "compony_id", null: false
+    t.index ["compony_id"], name: "index_employees_on_compony_id"
     t.index ["email"], name: "index_employees_on_email", unique: true
   end
 
@@ -66,4 +79,5 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_09_084403) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "employees", "componies"
 end

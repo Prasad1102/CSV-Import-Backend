@@ -1,4 +1,6 @@
 class Employee < ApplicationRecord
+    belongs_to :compony, counter_cache: true
+
     enum :role, [:admin, :manager, :employee]
 
     validates :email, presence: true,

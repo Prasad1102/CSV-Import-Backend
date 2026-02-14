@@ -22,6 +22,22 @@ class ImportJob < ApplicationJob
           total_count += 1
 
           valid, errors = validate_record(row)
+
+          company_name = row['company_name']&.strip
+          present = Compony.find_by(name: company_name)
+
+          if !present
+            Compony.create(
+              name: company_name,
+              established_date: row['established_date']&.strip,
+              ceo: row['ceo'].to_s.strip,
+              head_office: row['head_office'].to_s.strip,
+              website: row['website'].to_s.strip
+            )
+          end
+
+          compony = Compony.find_by(name: company_name)
+
           if valid
             records << {
               email: row['email'].strip.downcase,
@@ -29,7 +45,8 @@ class ImportJob < ApplicationJob
               last_name: row['last_name'].strip,
               mobile: row['mobile'].strip,
               role: row['role'].strip.to_i,
-              joining_date: row['joining_date'].strip
+              joining_date: row['joining_date'].strip,
+              compony_id: compony.id
             }
           else
             failed_count += 1

@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:15
+    container_name: my-postgres
+    environment:
+      POSTGRES_USER: prasadshelke
+      POSTGRES_PASSWORD: securepassword
+      POSTGRES_DB: backend_development
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    image: my-rails-backend
+    container_name: rails-app
+    depends_on:
+      - db
+    environment:
+      RAILS_MASTER_KEY: af719e320e85258555f367bdc0d59165
+      POSTGRES_USER: prasadshelke
+      POSTGRES_PASSWORD: securepassword
+      POSTGRES_DB: backend_development
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+    ports:
+      - "3000:3000"
